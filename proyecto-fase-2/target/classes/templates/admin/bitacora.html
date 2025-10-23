@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Bitácora de Administradores</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 2em; }
+    h1 { color: #003366; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #003366; color: white; }
+    a { text-decoration: none; color: #003366; }
+  </style>
+</head>
+<body>
+  <h1>Bitácora de Actividades</h1>
+
+  <p><strong>Administrador:</strong> <span th:text="${usuario}"></span></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha y Hora</th>
+        <th>Usuario</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="b : ${registros}">
+        <td th:text="${#temporals.format(b.fechaHora, 'dd/MM/yyyy HH:mm:ss')}"></td>
+        <td th:text="${b.usuario}"></td>
+        <td th:text="${b.accion}"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><a href="/proyecto">⬅ Volver</a></p>
+</body>
+</html>

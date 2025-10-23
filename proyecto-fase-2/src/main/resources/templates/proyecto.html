@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Proyecto Siguiente</title>
+    <style>
+      /* === RESET === */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        color: #f4f4f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+
+      .card {
+        background: #ffffff10;
+        backdrop-filter: blur(10px);
+        padding: 2.5rem 3rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        max-width: 450px;
+        width: 100%;
+        text-align: center;
+        animation: fadeIn 0.8s ease;
+      }
+
+      .card h1 {
+        font-size: 2rem;
+        color: #fff;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #00bcd4;
+        padding-bottom: 0.5rem;
+      }
+
+      .info {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      ul {
+        list-style: none;
+        margin: 1.5rem 0;
+        padding: 0;
+      }
+
+      ul li {
+        margin: 0.7rem 0;
+      }
+
+      .btn {
+        text-decoration: none;
+        display: inline-block;
+        color: #fff;
+        background-color: #00bcd4;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        width: 70%;
+        border: none;
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        background-color: #0097a7;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 188, 212, 0.4);
+      }
+
+      .btn-secondary {
+        background-color: #00897b;
+      }
+
+      .btn-secondary:hover {
+        background-color: #00796b;
+        box-shadow: 0 4px 12px rgba(0, 150, 136, 0.4);
+      }
+
+      form button {
+        border: none;
+        background-color: #f44336;
+        color: white;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-top: 1.5rem;
+      }
+
+      form button:hover {
+        background-color: #d32f2f;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+
+  <script></script>
+
+  <body>
+    <div class="card">
+      <h1>Proyecto Siguiente</h1>
+      <p class="info">
+        Hola, <strong th:text="${usuario}">usuario</strong><br />
+        Rol:
+        <span th:text="${rol}" style="color: #00e5ff; font-weight: bold"
+          >[ROL]</span
+        >
+      </p>
+
+      <ul>
+        <li><a th:href="@{/jugar}" class="btn">Jugar</a></li>
+
+        <li th:if="${isAdmin}">
+          <a th:href="@{/admin/usuarios}" class="btn">Administrar Usuarios</a>
+        </li>
+
+        <li th:if="${isAdmin}">
+          <a href="/admin/bitacora" class="btn">Ver Bitacora</a>
+        </li>
+
+        <li th:if="${isAdmin}">
+          <a href="/config.html" class="btn">Configurar Pistas</a>
+        </li>
+
+        <li th:if="${isAdmin}">
+          <button onclick="importarPistas()" class="btn btn-secondary">
+            Importar Pistas
+          </button>
+        </li>
+
+        <li th:if="${isAdmin}">
+          <button onclick="exportarPistas()" class="btn btn-secondary">
+            Exportar Pistas
+          </button>
+        </li>
+      </ul>
+
+      <form th:action="@{/logout}" method="post">
+        <button type="submit">Cerrar sesión</button>
+      </form>
+    </div>
+
+    <script>
+      function exportarPistas() {
+        try {
+          const pistas = JSON.parse(localStorage.getItem("robotRunner.tracks") || "[]");
+
+          if (pistas.length === 0) {
+            alert("No hay pistas configuradas para exportar.");
+            return;
+          }
+
+          const contenido = JSON.stringify(pistas, null, 2);
+          const blob = new Blob([contenido], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "pistas_exportadas.json";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          alert(`Se exportaron ${pistas.length} pistas correctamente.`);
+        } catch (error) {
+          console.error("Error al exportar pistas:", error);
+          alert("Error al exportar las pistas.");
+        }
+      }
+
+      function importarPistas() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+
+        input.onchange = async (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          try {
+            const text = await file.text();
+            const nuevasPistas = JSON.parse(text);
+
+            if (!Array.isArray(nuevasPistas)) {
+              alert("El archivo no tiene un formato válido.");
+              return;
+            }
+
+            const pistasActuales = JSON.parse(localStorage.getItem("robotRunner.tracks") || "[]");
+
+            const idsActuales = new Set(pistasActuales.map(p => p.id));
+            const pistasFusionadas = [
+              ...pistasActuales,
+              ...nuevasPistas.filter(p => !idsActuales.has(p.id))
+            ];
+
+            localStorage.setItem("robotRunner.tracks", JSON.stringify(pistasFusionadas, null, 2));
+
+            alert(`Se importaron ${nuevasPistas.length} pistas correctamente.`);
+
+            location.reload();
+          } catch (error) {
+            console.error("Error al importar pistas:", error);
+            alert("Error al importar las pistas. Verifique el archivo.");
+          }
+        };
+
+        input.click();
+      }
+    </script>
+
+  </body>
+</html>
