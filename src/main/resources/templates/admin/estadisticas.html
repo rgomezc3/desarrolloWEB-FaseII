@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Estadísticas de Uso</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; background: #f4f4f9; }
+    h1 { color: #003366; }
+    form { margin-bottom: 1em; }
+    label, input { margin-right: 1em; }
+    .resultado { background: white; padding: 1em; border-radius: 6px; box-shadow: 0 0 4px #ccc; }
+    canvas { max-width: 600px; margin: 2em auto; display: block; }
+    a { text-decoration: none; color: #003366; }
+    button { background: #0066cc; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #004c99; }
+  </style>
+</head>
+<body>
+  <h1>📊 Estadísticas de Uso</h1>
+
+  <form th:action="@{/admin/estadisticas/consultar}" method="post">
+    <label>Desde:</label>
+    <input type="datetime-local" name="inicio" required>
+    <label>Hasta:</label>
+    <input type="datetime-local" name="fin" required>
+    <button type="submit">Consultar</button>
+  </form>
+
+  <div class="resultado" th:if="${visitas != null}">
+    <h3>Resultados del intervalo:</h3>
+    <p><strong>Desde:</strong> <span th:text="${inicio}"></span></p>
+    <p><strong>Hasta:</strong> <span th:text="${fin}"></span></p>
+    <hr>
+    <p><strong>Total de visitas:</strong> <span th:text="${visitas}"></span></p>
+    <p><strong>Misiones completadas:</strong> <span th:text="${exitos}"></span></p>
+    <p><strong>Misiones fallidas:</strong> <span th:text="${fallos}"></span></p>
+
+    <!-- Contenedor de gráficos -->
+    <canvas id="chartBarras"></canvas>
+    <canvas id="chartPastel"></canvas>
+  </div>
+
+  <p><a href="/proyecto">⬅ Volver</a></p>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    const visitas = /*[[${visitas}]]*/ 0;
+    const exitos = /*[[${exitos}]]*/ 0;
+    const fallos = /*[[${fallos}]]*/ 0;
+
+    if (visitas || exitos || fallos) {
+
+      // === Gráfico de barras ===
+      const ctxBar = document.getElementById('chartBarras');
+      new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: ['Visitas', 'Completadas', 'Fallidas'],
+          datasets: [{
+            label: 'Cantidad',
+            data: [visitas, exitos, fallos],
+            backgroundColor: ['#007bff', '#28a745', '#dc3545'],
+            borderColor: '#333',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: 'Estadísticas de Uso (Gráfico de Barras)',
+              font: { size: 18 }
+            }
+          }
+        }
+      });
+
+      // === Gráfico de pastel ===
+      const ctxPie = document.getElementById('chartPastel');
+      new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+          labels: ['Visitas', 'Completadas', 'Fallidas'],
+          datasets: [{
+            label: 'Distribución',
+            data: [visitas, exitos, fallos],
+            backgroundColor: ['#007bff', '#28a745', '#dc3545'],
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: 'Distribución de Actividad (Gráfico de Pastel)',
+              font: { size: 18 }
+            }
+          }
+        }
+      });
+    }
+    /*]]>*/
+  </script>
+</body>
+</html>
